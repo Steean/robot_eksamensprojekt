@@ -12,7 +12,15 @@ class Paper:
 	    return True
 	else:
 	    return False
-	    
+	
+# Color definitions
+lower_red = np.array([50,10,70])
+upper_red = np.array([151,110,180])
+
+lower_white = np.array([150,150,150])
+upper_white = np.array([255,255,255])
+    
+# Main
 print "loading from file"
 image = cv2.imread('/home/ubuntu/catkin_ws/src/robot_eksamensprojekt/src/hus.jpg')
 #cv2.imshow('raw image',image)
@@ -20,12 +28,6 @@ image = cv2.imread('/home/ubuntu/catkin_ws/src/robot_eksamensprojekt/src/hus.jpg
 hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
 cv2.imshow('hsv',hsv)
-
-lower_red = np.array([50,10,70])
-upper_red = np.array([151,110,180])
-
-lower_white = np.array([150,150,150])
-upper_white = np.array([255,255,255])
 
 mask_red = cv2.inRange(image, lower_red, upper_red)
 mask_white = cv2.inRange(image, lower_white, upper_white)
@@ -37,12 +39,12 @@ edges_white = cv2.Canny(res_white,150,250)
 
 contours_white,hierarchy = cv2.findContours(edges_white,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 
-bricks = []
+papers = []
 for cnt in contours_white:
   
-    epsilon = 0.1*cv2.arcLength(cnt,True)
-    approx = cv2.approxPolyDP(cnt,epsilon,True)
-    rect = cv2.minAreaRect(approx)
+    #epsilon = 0.1*cv2.arcLength(cnt,True)
+    #approx = cv2.approxPolyDP(cnt,epsilon,True)
+    #rect = cv2.minAreaRect(approx)
     area = cv2.contourArea(cnt)   
     #box = cv2.cv.BoxPoints(rect)
     #box = box = np.int0(box)
@@ -54,14 +56,19 @@ for cnt in contours_white:
         bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
         bottomLeftCorner = tuple([leftmost[0], bottommost[1]])
         topRightCorner = tuple([rightmost[0], topmost[1]])
-        print bottomLeftCorner
-        print topRightCorner
+	paper = Paper()
+	paper.bottomleftcorner = bottomLeftCorner
+	paper.toprightcorner = topRightCorner
+	papers.append(paper)  
         
-leftpaper = Paper()
-leftpaper.bottomleftcorner = tuple([24, 268])
-leftpaper.toprightcorner = tuple ([291, 80])
+#leftpaper = Paper()
+#leftpaper.bottomleftcorner = tuple([24, 268])
+#leftpaper.toprightcorner = tuple ([291, 80])
 
-print leftpaper.is_within(tuple([96, 236]))
+#print leftpaper.is_within(tuple([96, 236]))
+
+for p in papers:
+    print p.bottomleftcorner + ',' + p.toprightcorner
 
 cv2.imshow('raw',image)
 #cv2.imshow('mask_red', mask_red)
