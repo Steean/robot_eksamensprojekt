@@ -117,25 +117,35 @@ def are_points_equal(point1, point2, tolerance):
 		return False
 	
 def generate_trajectorypoints(point1, point2, interval):
+	point1_f = []
+	point1_f.append(float(point1[0]))
+	point1_f.append(float(point1[1]))
+	point1_f.append(0.0)
+
+	point2_f = []
+	point2_f.append(float(point2[0]))
+	point2_f.append(float(point2[1]))
+	point2_f.append(0.0)
+
 	trajectory_points = []
-	if math.fabs(point1[0]-point2[0]) > 30: #virker i nu?
-		slope = ((point2[1] - point1[1]) / (point2[0] - point1[0]))
-		x = point1[0]
-		if point1[0] > point2[0]: 
-			point = []
-			while x > point2[0]:
+	if math.fabs(point1_f[0]-point2_f[0]) > 30:
+		slope = ((point2_f[1] - point1_f[1]) / (point2_f[0] - point1_f[0]))
+		x = point1_f[0]
+		if point1_f[0] > point2_f[0]: 
+			while x > (point2_f[0]+interval):
+				point = []
 				x = x - interval
-				y = y + x*slope
+				y = point1_f[1] + (x-point1_f[0])*slope
 				z = 0.0
 				point.append(x)
 				point.append(y)
 				point.append(z)
 				trajectory_points.append(point)
 		else:
-			point = []
-			while x < point2[0]:
+			while x < (point2_f[0]-interval):
+				point = []			
 				x = x + interval
-				y = y + x*slope  
+				y = point1_f[1] + (x-point1_f[0])*slope
 				z = 0.0
 				point.append(x)
 				point.append(y)
@@ -143,35 +153,41 @@ def generate_trajectorypoints(point1, point2, interval):
 				trajectory_points.append(point)
 
 	else:
-		slope = ((point2[0] - point1[0]) / (point2[1] - point1[1]))
+		slope = ((point2_f[0] - point1_f[0]) / (point2_f[1] - point1_f[1]))
 		y = point1[1]
-
-		print "er vi her?"
-		if point1[1] > point2[1]: 
-			print "ja"
-			point = []
-			x = point2[0]
-			while y > point2[1]:
+		if point1_f[1] > point2_f[1]: 
+			x = point2_f[0]
+			while y > (point2_f[1]+interval):
+				point = []
 				y = y - interval
-				x = x + y*slope
+				x = point1_f[0] + (y-point1_f[1])*slope
 				z = 0.0
 				point.append(x)
 				point.append(y)
 				point.append(z)
 				trajectory_points.append(point)
 		else:
-			point = []
-			x = point1[0]
-			while y < point2[1]:
-				y = y + interval
-				x = x + y*slope  
+			x = point1_f[0]
+			while y < (point2_f[1]-interval):
+				point = []
+				y = y + interval				
+				x = point1_f[0] + (y-point1_f[1])*slope
 				z = 0.0
 				point.append(x)
 				point.append(y)
 				point.append(z)
 				trajectory_points.append(point)
-	
-	return trajectory_points
+
+	trajectory_points_rounded = []
+
+	for point_array in trajectory_points:
+		point = []		
+		for p in point_array:
+			point.append(int(round(p)))
+		
+		trajectory_points_rounded.append(point)
+
+	return trajectory_points_rounded
 			
 
 # Color definitions
@@ -239,7 +255,12 @@ for p in points:
 				is_new = False
 
 		if is_new:
-			sorted_points.append(po[0])     
+			sorted_points.append(po[0])
+	
+	#Vi kom hertil. Vi får kun 3 konturer i stedet for 4.
+	#Når der er styr på det, skal vi have anvendt vores generate_trajectorypoints på de sorterede punkter
+	#de generede punkter skal lægges ind mellem hjørnepunkterne.
+	sorted_points.append(tuple([0,0]))
 
 for sp in sorted_points:
 	print sp
@@ -255,7 +276,7 @@ for r in result:
 	cv2.circle(res_white, r, 1, 0, 1)
 
 point1_test = [90,148]
-point2_test = [96,237]
+point2_test = [161,111]
 tr_result = []
 tr_result = generate_trajectorypoints(point1_test,point2_test,10)
 
@@ -269,18 +290,15 @@ for tr in tr_result:
 for pr in print_result:
 	cv2.circle(res_white, pr, 1, 0, 1)
 
-
-
-
 cv2.imshow('res_white',res_white)
-
+"""
 if __name__ == "__main__":
 	rospy.init_node("invkin")
 
 	node= ActionExampleNode("/arm_controller/follow_joint_trajectory")
 
 	node.send_command()
-
+"""
 key = cv2.waitKey(0)
 if key == 27:
     exit(0)
